@@ -1,27 +1,26 @@
 import torch
 from diffusers import FluxPipeline
 
-# Load the pipeline and move it to the GPU
-pipe = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-dev", torch_dtype=torch.float16)
-pipe.to("cuda")  # Move the pipeline to the GPU
+# Load the pipeline with mixed precision
+pipe = FluxPipeline.from_pretrained(
+    "black-forest-labs/FLUX.1-dev", 
+    torch_dtype=torch.float16
+)
 
-# Optionally, if you have enough GPU memory, you can remove the CPU offload line
-pipe.enable_model_cpu_offload()  # Comment out this line to keep the model fully on the GPU
-pipe.enable_gradient_checkpointing()
+# Enable CPU offloading to save VRAM
+pipe.enable_model_cpu_offload()
 
+# Generate the image
 prompt = "A cat holding a sign that says hello world"
-
-# Use GPU-based generator
-generator = torch.Generator("cuda").manual_seed(0)
-
 image = pipe(
     prompt,
-    height=1024,
-    width=1024,
+    height=768,  # Consider using a smaller resolution, e.g., 768x768 instead of 1024x1024
+    width=768,
     guidance_scale=3.5,
-    num_inference_steps=50,
+    num_inference_steps=30,  # Reduce the number of inference steps
     max_sequence_length=512,
-    generator=generator
+    generator=torch.Generator("cuda").manual_seed(0)  # Use GPU for generation
 ).images[0]
 
+# Save the image
 image.save("flux-dev.png")
