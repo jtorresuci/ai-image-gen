@@ -19,3 +19,4 @@ image = download_image(url)
 prompt = "turn him into cyborg"
 images = pipe(prompt, image=image, num_inference_steps=10, image_guidance_scale=1).images
 images[0]
+images[0].save("output_image.png")
